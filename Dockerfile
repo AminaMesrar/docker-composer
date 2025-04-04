@@ -1,17 +1,17 @@
-FROM node:18-slim
+FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and install dependencies
-COPY package.json package-lock.json ./
+COPY package*.json ./
 RUN npm install
 
-# Copy source files
 COPY . .
 
-# Expose port
 EXPOSE 3000
 
-# Start the application
-CMD ["node", "server.js"]
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error()})"
+
+# Use a startup script instead of direct command
+CMD ["node", "app.js"]
